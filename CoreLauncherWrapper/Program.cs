@@ -32,7 +32,7 @@ namespace CoreLauncherWrapper
             if (Java.TryCheck(out var check))
             {
                 var ver = check?.FirstOrDefault(x => x.MajorVersion >= 17);
-                if (ver != null)
+                if (ver != null && ver.HasValue && ver?.Path != null)
                 {
                     Launch(ver?.Path);
                     Console.Read();
@@ -48,7 +48,7 @@ namespace CoreLauncherWrapper
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
             ServicePointManager.DefaultConnectionLimit = 999999;
 
-            try 
+            try
             {
                 Java.Install(Path.Combine(Environment.CurrentDirectory, "Java"), a => Console.Write("\r%" + a), a =>
                 {
@@ -61,7 +61,7 @@ namespace CoreLauncherWrapper
                         Main(args);
                 });
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine("Error (probably no connection): " + e.Message);
             }

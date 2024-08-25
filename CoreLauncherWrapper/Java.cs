@@ -1,9 +1,9 @@
-﻿using Ionic.Zip;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -178,10 +178,11 @@ namespace CoreLauncherWrapper
         {
             var f = Path.Combine(Environment.CurrentDirectory, "Java");
             var f3 = Path.Combine(Environment.CurrentDirectory, "Java1");
-            Directory.CreateDirectory(f);
-            using (var file = ZipFile.Read(archive))
+            //Directory.CreateDirectory(f);
+            using (var file = ZipFile.OpenRead(archive))
             {
-                file.ExtractAll(f, ExtractExistingFileAction.OverwriteSilently);
+                file.ExtractToDirectory(f, true);
+                //file.ExtractAll(f, ExtractExistingFileAction.OverwriteSilently);
             }
 
             var f2 = Directory.GetDirectories(f)[0];
@@ -191,6 +192,31 @@ namespace CoreLauncherWrapper
 
             File.Delete(archive);
             done(true);
+        }
+    }
+
+    public static class ZipExt
+    {
+        public static void ExtractToDirectory(this ZipArchive archive, string dir, bool overwrite)
+        {
+            if (!overwrite)
+            {
+                archive.ExtractToDirectory(dir);
+                return;
+            }
+
+            Directory.CreateDirectory(dir);
+
+            foreach(var entry in archive.Entries)
+            {
+                string path = Path.GetFullPath(Path.Combine(dir, entry.FullName));
+                if (string.IsNullOrEmpty(entry.Name))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    continue;
+                }
+                entry.ExtractToFile(path, true);
+            }
         }
     }
 }
