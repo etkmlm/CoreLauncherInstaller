@@ -1,19 +1,21 @@
-﻿using Microsoft.Win32;
+﻿using Ionic.Zip;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace CoreLauncherWrapper
 {
     internal class Java
     {
+        [DllImport("kernel32.dll")]
+        private static extern bool IsWow64Process(IntPtr process, out bool wow64process);
         [DllImport("kernel32.dll")]
         private static extern bool IsWow64Process2(IntPtr process, out ushort processMachine, out ushort nativeMachine);
 
@@ -88,12 +90,25 @@ namespace CoreLauncherWrapper
 
         private static bool Is64Bit()
         {
-            bool x = IsWow64Process2(Process.GetCurrentProcess().Handle, out ushort a, out ushort b);
+            bool f;
+            var handle = Process.GetCurrentProcess().Handle;
+            try
+            {
+                bool x = IsWow64Process2(handle, out ushort a, out ushort b);
 
-            bool amd64 = ((int)ImageFileMachine.AMD64 & b) == (int)ImageFileMachine.AMD64; ;
-            bool intel64 = ((int)ImageFileMachine.IA64 & b) == (int)ImageFileMachine.IA64;
+                bool amd64 = ((int)ImageFileMachine.AMD64 & b) == (int)ImageFileMachine.AMD64; ;
+                bool intel64 = ((int)ImageFileMachine.IA64 & b) == (int)ImageFileMachine.IA64;
 
-            return x && (amd64 || intel64);
+                f = x && (amd64 || intel64);
+            }
+            catch (EntryPointNotFoundException)
+            {
+                bool x = IsWow64Process(handle, out bool y);
+                f = x && y;
+            }
+            
+
+            return f;
         }
 
         /*public static void Install(string path, Action<int> progress, Action<bool> done)
@@ -178,13 +193,11 @@ namespace CoreLauncherWrapper
         {
             var f = Path.Combine(Environment.CurrentDirectory, "Java");
             var f3 = Path.Combine(Environment.CurrentDirectory, "Java1");
-            //Directory.CreateDirectory(f);
-            using (var file = ZipFile.OpenRead(archive))
+            Directory.CreateDirectory(f);
+            using (var file = ZipFile.Read(archive))
             {
-                file.ExtractToDirectory(f, true);
-                //file.ExtractAll(f, ExtractExistingFileAction.OverwriteSilently);
+                file.ExtractAll(f, ExtractExistingFileAction.OverwriteSilently);
             }
-
             var f2 = Directory.GetDirectories(f)[0];
             Directory.Move(f2, f3);
             Directory.Delete(f);
@@ -192,31 +205,6 @@ namespace CoreLauncherWrapper
 
             File.Delete(archive);
             done(true);
-        }
-    }
-
-    public static class ZipExt
-    {
-        public static void ExtractToDirectory(this ZipArchive archive, string dir, bool overwrite)
-        {
-            if (!overwrite)
-            {
-                archive.ExtractToDirectory(dir);
-                return;
-            }
-
-            Directory.CreateDirectory(dir);
-
-            foreach(var entry in archive.Entries)
-            {
-                string path = Path.GetFullPath(Path.Combine(dir, entry.FullName));
-                if (string.IsNullOrEmpty(entry.Name))
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
-                    continue;
-                }
-                entry.ExtractToFile(path, true);
-            }
         }
     }
 }
