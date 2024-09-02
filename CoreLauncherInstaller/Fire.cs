@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -29,7 +31,7 @@ namespace CoreLauncherInstaller
         private static async Task<double> GetLatest()
         {
             var str = await client.GetStringAsync(LATEST);
-            return double.Parse(str);
+            return double.Parse(str, CultureInfo.GetCultureInfo("en_US"));
         }
 
         public static async Task<string> GetLatestWrapper()
