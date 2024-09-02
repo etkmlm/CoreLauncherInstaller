@@ -10,7 +10,7 @@ You can compile from the source by downloading this repository.
 
 ## Installer
 
-Installer is the first step. It was developed on .NET Framework 3.5, so every Windows OS can run without any dependencies.
+Installer is the first step. It was developed on .NET Framework 4.6.2, so every Windows OS newer than Windows 7 can run it without any dependencies.
 
 ![](installer.png)
 
