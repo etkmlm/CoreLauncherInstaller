@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CoreLauncherInstaller
 {
-    internal struct File
+    internal class File
     {
         [JsonProperty("version")]
         public double Version { get; set; }

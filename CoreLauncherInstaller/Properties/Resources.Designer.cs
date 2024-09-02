@@ -97,6 +97,15 @@ namespace CoreLauncherInstaller.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot retrieve new version, operation cannot be performed..
+        /// </summary>
+        public static string ErrorNewVersion {
+            get {
+                return ResourceManager.GetString("ErrorNewVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Install.
         /// </summary>
         public static string Install {

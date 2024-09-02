@@ -1,48 +1,46 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Text;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace CoreLauncherInstaller
 {
-    internal class Fire
+    internal static class Fire
     {
         public static readonly string LATEST = "https://laeben-update-default-rtdb.europe-west1.firebasedatabase.app/apps/clauncher/latest.json";
         public static readonly string GET_VERSIONS = "https://laeben-update-default-rtdb.europe-west1.firebasedatabase.app/apps/clauncher/files.json";
         public static readonly string WRAPPER = "https://laeben-update-default-rtdb.europe-west1.firebasedatabase.app/apps/clauncher/wrapper.json";
 
-        public static List<File> GetFiles()
+        private static readonly HttpClient client = new HttpClient
         {
-            using (var client = new WebClient())
+            DefaultRequestHeaders =
             {
-                var str = client.DownloadString(GET_VERSIONS);
-                return JsonConvert.DeserializeObject<List<File>>(str);
+                { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0" }
             }
+        };
+
+        public static async Task<List<File>> GetFiles()
+        {
+            var str = await client.GetStringAsync(GET_VERSIONS);
+            return JsonConvert.DeserializeObject<List<File>>(str);
         }
 
-        private static double GetLatest()
+        private static async Task<double> GetLatest()
         {
-            using (var client = new WebClient())
-            {
-                var str = client.DownloadString(LATEST);
-                return double.Parse(str);
-            }
+            var str = await client.GetStringAsync(LATEST);
+            return double.Parse(str);
         }
 
-        public static string GetLatestWrapper()
+        public static async Task<string> GetLatestWrapper()
         {
-            using (var client = new WebClient())
-            {
-                return client.DownloadString(WRAPPER).Replace("\"", "");
-            }
+            return (await client.GetStringAsync(WRAPPER)).Replace("\"", "");
         }
 
-        public static File GetLatestFile()
+        public static async Task<File> GetLatestFile()
         {
-            var files = GetFiles();
-            var latest = GetLatest();
+            var files = await GetFiles();
+            var latest = await GetLatest();
 
             return files.FirstOrDefault(a => a.Version == latest);
         }
